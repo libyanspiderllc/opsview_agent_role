@@ -1,0 +1,53 @@
+---
+# tasks file for install-opsview-agent
+- name: Set OpsView Plugins path
+  set_fact: 
+    plugins_path: /opt/opsview/agent/plugins/
+
+- name: Set OpsView User (Debian > Stretch and RedHat)
+  set_fact: 
+    opsview_user: opsview
+
+- name: Plugins | Install check_loggedin Plugin
+  copy: 
+    src: plugins/check_loggedin.py
+    dest: "{{ plugins_path }}check_loggedin.py"
+    mode: a+x
+    group: "{{ opsview_user }}"
+    owner: "{{ opsview_user }}"
+
+- name: Plugins | Install check_ro Plugin
+  copy:
+    src: plugins/check_ro.sh
+    dest: "{{ plugins_path }}check_ro.sh"
+    mode: a+x
+    group: "{{ opsview_user }}"
+    owner: "{{ opsview_user }}"
+
+- name: Plugins | Install check_eximailqueue Plugin
+  copy:
+    src: plugins/check_eximailqueue
+    dest: "{{ plugins_path }}check_eximailqueue"
+    mode: a+x
+    group: "{{ opsview_user }}"
+    owner: "{{ opsview_user }}"
+    
+- name: Plugins | Install check_clamav Plugin
+  copy:
+    src: plugins/check_clamav
+    dest: "{{ plugins_path }}check_clamav"
+    mode: a+x
+    group: "{{ opsview_user }}"
+    owner: "{{ opsview_user }}"
+  notify: restart opsview-agent
+ 
+- name: Plugins | Install check_csf Plugin
+  copy:
+    src: plugins/check_csf.sh
+    dest: "{{ plugins_path }}check_csf.sh"
+    mode: a+x
+    group: "{{ opsview_user }}"
+    owner: "{{ opsview_user }}"
+  notify: restart opsview-agent
+
+

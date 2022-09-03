@@ -1,0 +1,22 @@
+---
+# tasks file for install-opsview-agent
+
+- name: Include setup tasks | RedHat
+  include_tasks: setup-Redhat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Include setup tasks | Debian
+  include_tasks: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
+
+- name: Include setup tasks | Ubuntu
+  include_tasks: setup-Ubuntu.yml
+  when: ansible_os_family == 'Ubuntu'
+
+- name: Include setup tasks | Windows
+  include_tasks: setup-Windows.yml
+  when: ansible_os_family == 'Windows'  
+
+- name: Install Plugins
+  include_tasks: plugins.yml
+  when: ansible_os_family != 'Windows'

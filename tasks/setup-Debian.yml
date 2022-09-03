@@ -1,0 +1,88 @@
+---
+# tasks file for install-opsview-agent
+
+- name: Debian (< Stretch) | Upload installer Package
+  copy:
+    src: agents/opsview-agent_6.4.18.202010071305-1{{ansible_distribution_release}}1_amd64.deb
+    dest: /tmp/opsview-agent_6.4.18.202010071305-1{{ansible_distribution_release}}1_amd64.deb
+    mode: 644
+  when: ansible_distribution_release != 'stretch' and ansible_distribution_release != 'buster'
+
+- name: Debian (> Stretch) | Upload installer Package
+  copy:
+    src: agents/opsview-agent_6.3.1.201911130833-1{{ansible_distribution_release}}1_amd64.deb
+    dest: /tmp/opsview-agent_6.3.1.201911130833-1{{ansible_distribution_release}}1_amd64.deb
+    mode: 644
+  when: ansible_distribution_release == 'stretch' or ansible_distribution_release == 'buster'
+
+- name: Debian | Check Requirements
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libmcrypt4
+    - libgetopt-mixed-perl
+    - ksh
+    - facter
+
+- name: Debian (>Stretch) | Install libssl
+  package:
+    name: libssl1.1
+    state: present
+  when: ansible_distribution_release == 'stretch' or ansible_distribution_release == 'buster'
+
+- name: Debian (> Stretch) | Install OpsView Agent for Debian
+  apt:
+    deb: /tmp/opsview-agent_6.3.1.201911130833-1{{ansible_distribution_release}}1_amd64.deb
+    state: present
+  when: ansible_distribution_release == 'stretch' or ansible_distribution_release == 'buster'
+
+- name: Debian (< Stretch) | Install OpsView Agent for Debian
+  apt:
+    deb: /tmp/opsview-agent_6.4.18.202010071305-1{{ansible_distribution_release}}1_amd64.deb
+    state: present
+  when: ansible_distribution_release != 'stretch' and ansible_distribution_release != 'buster'
+
+
+- name: Debian | Create Agent Configuration File
+  template:
+    src: templates/nrpe.cfg.j2
+    dest: /opt/opsview/agent/etc/nrpe.cfg
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - restart opsview-agent
+
+- name: Debian | Check if Net-SNMP is installed
+  stat:
+    path: /etc/snmp/snmpd.conf
+  register: snmpd_installed
+
+- name: Debian | Add OpsView Server to Net-SNMP config
+  lineinfile:
+    path: /etc/snmp/snmpd.conf
+    state: present
+    line: com2sec notConfigUser {{opsview_server_ip}} {{snmpd_community}}
+  when: snmpd_installed.stat.exists == true and snmpd_community|length > 0
+  notify:
+    - restart snmpd
+
+- name: Debian | Install Sudo
+  package:
+    name: sudo
+    state: present
+  when: ansible_distribution_release == 'stretch' or ansible_distribution_release == 'buster'
+
+- name: Debian | Copy Opsview sudoers files
+  copy:
+    src: files/sudoers.d/opsview
+    dest: /etc/sudoers.d/opsview
+    owner: root
+    validate: 'visudo -cf %s'
+
+- name: Debian | Enable and Start OpsView Agent Service
+  service:
+    name: opsview-agent
+    state: started
+    enabled: yes

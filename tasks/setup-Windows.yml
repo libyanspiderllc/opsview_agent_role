@@ -1,0 +1,28 @@
+---
+- name: Windows | Upload OpsView Agent installer package
+  win_copy:
+    src: agents/Opsview_Windows_Agent_x64_21-11-17-1421.msi
+    dest: C:\Users\{{ansible_user}}\Downloads\Opsview_Windows_Agent_x64_21-11-17-1421.msi
+
+
+- name: Windows | Install OpsView Agent
+  win_package:
+    path: C:\Users\{{ansible_user}}\Downloads\Opsview_Windows_Agent_x64_21-11-17-1421.msi
+    state: present
+    wait_for_children: True
+    arguments: /passive
+    creates_path: C:\Program Files\Opsview Agent\NSClient++.exe
+
+- name: Windows | Check if Net-SNMP is installed
+  win_stat:
+    path: C:\usr\etc\snmp\snmpd.conf
+  register: snmpd_installed
+
+- name: Windows | Add OpsView Server IP to SNMP Allowed hosts
+  win_lineinfile:
+    path: C:\usr\etc\snmp\snmpd.conf
+    line: "rocommunity {{snmpd_community}} {{opsview_server_ip}}"
+    state: present
+  when: snmpd_installed.stat.exists == true and snmpd_community|length > 0
+  notify: win_restart_snmpd
+  ignore_errors: yes

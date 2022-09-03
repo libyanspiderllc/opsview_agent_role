@@ -1,0 +1,3 @@
+opsview ALL=(ALL) NOPASSWD:/usr/local/nagios/libexec/check_eximailqueue
+opsview ALL=NOPASSWD:/usr/sbin/exim
+opsview ALL=NOPASSWD:/usr/sbin/csf

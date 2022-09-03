@@ -1,0 +1,22 @@
+---
+# handlers file for install-opsview-agent
+
+- name: restart opsview-agent
+  service:
+    name: opsview-agent
+    state: restarted
+
+- name: restart snmptrapd
+  service:
+    name: snmptrapd
+    state: restarted
+
+- name: restart snmpd
+  service:
+    name: snmpd
+    state: restarted
+
+- name: win_restart_snmpd
+  service:
+    name: "Net-SNMP Agent"
+    state: restarted

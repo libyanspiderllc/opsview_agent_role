@@ -1,0 +1,4 @@
+---
+# defaults file for opsview-agent-role
+opsview_server_ip: ''
+snmpd_community: 'public'

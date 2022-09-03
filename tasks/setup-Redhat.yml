@@ -1,0 +1,99 @@
+---
+# tasks file for install-opsview-agent
+
+- name: RedHat 6 | Upload installer Package
+  copy:
+    src: agents/opsview-agent-6.1.0.201902141415-1.ct6.x86_64.rpm
+    dest: /tmp/opsview-agent-6.1.0.201902141415-1.ct6.x86_64.rpm
+    mode: 644
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "6"
+
+- name: RedHat 7 | Upload installer Package
+  copy:
+    src: agents/opsview-agent-6.3.1.201911130833-1.ct7.x86_64.rpm
+    dest: /tmp/opsview-agent-6.3.1.201911130833-1.ct7.x86_64.rpm
+    mode: 644
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "7"
+
+- name: RedHat 8 | Upload installer Package
+  copy:
+    src: agents/opsview-agent-6.3.1.201911130833-1.ct8.1.1911.x86_64.rpm
+    dest: /tmp/opsview-agent-6.3.1.201911130833-1.ct8.1.1911.x86_64.rpm
+    mode: 644
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux" or ansible_distribution == "Rocky") and ansible_distribution_major_version == "8"
+
+- name: RedHat | Check Requirements
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - epel-release
+    - libmcrypt
+    - ksh
+    - bind-utils
+    - libtool-libs
+
+- name: RedHat | Create OpsView User
+  user:
+    name: opsview
+    home: /opt/opsview
+    state: present
+    system: true
+
+- name: RedHat 6 | Install OpsView Agent
+  yum:
+    name: /tmp/opsview-agent-6.1.0.201902141415-1.ct6.x86_64.rpm
+    state: installed
+    disable_gpg_check: true
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "6"
+
+- name: RedHat 7 | Install OpsView Agent
+  yum:
+    name: /tmp/opsview-agent-6.3.1.201911130833-1.ct7.x86_64.rpm
+    state: installed
+    disable_gpg_check: true
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "7"
+
+- name: RedHat 8 | Install OpsView Agent
+  yum:
+    name: /tmp/opsview-agent-6.3.1.201911130833-1.ct8.1.1911.x86_64.rpm
+    state: installed
+    disable_gpg_check: true
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux" or ansible_distribution == "Rocky") and ansible_distribution_major_version == "8"
+
+- name: RedHat | Create Agent Configuration File
+  template:
+    src: templates/nrpe.cfg.j2
+    dest: /opt/opsview/agent/etc/nrpe.cfg
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - restart opsview-agent
+
+- name: RedHat | Check if Net-SNMP is installed
+  stat:
+    path: /etc/snmp/snmpd.conf
+  register: snmpd_installed
+
+- name: RedHat | Add OpsView Server to Net-SNMP config
+  lineinfile:
+    path: /etc/snmp/snmpd.conf
+    state: present
+    line: com2sec notConfigUser {{opsview_server_ip}} {{snmpd_community}}
+  when: snmpd_installed.stat.exists == true and snmpd_community|length > 0
+  notify:
+    - restart snmpd
+
+- name: RedHat | Copy Opsview sudoers files
+  copy:
+    src: files/sudoers.d/opsview
+    dest: /etc/sudoers.d/opsview
+    owner: root
+    validate: 'visudo -cf %s'
+
+- name: RedHat | Enable and Start OpsView Agent Service
+  service:
+    name: opsview-agent
+    state: started
+    enabled: yes
