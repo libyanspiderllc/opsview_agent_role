@@ -1,0 +1,8 @@
+- name: Test the variable opsview_server_ip is filled. End the host if not.
+  block:
+    - name: Ending play...
+      ansible.builtin.debug:
+        msg: "opsview_server_ip is undefined. End of host."
+    - name: Ending play...
+      ansible.builtin.meta: end_host
+  when: opsview_server_ip is undefined or opsview_server_ip|length == 0
