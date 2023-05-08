@@ -6,21 +6,21 @@
     src: agents/opsview-agent-6.1.0.201902141415-1.ct6.x86_64.rpm
     dest: /tmp/opsview-agent-6.1.0.201902141415-1.ct6.x86_64.rpm
     mode: 644
-  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "6"
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "6"
 
 - name: RedHat 7 | Upload installer Package
   copy:
     src: agents/opsview-agent-6.3.1.201911130833-1.ct7.x86_64.rpm
     dest: /tmp/opsview-agent-6.3.1.201911130833-1.ct7.x86_64.rpm
     mode: 644
-  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "7"
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "7"
 
 - name: RedHat 8 | Upload installer Package
   copy:
     src: agents/opsview-agent-6.3.1.201911130833-1.ct8.1.1911.x86_64.rpm
     dest: /tmp/opsview-agent-6.3.1.201911130833-1.ct8.1.1911.x86_64.rpm
     mode: 644
-  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux" or ansible_distribution == "Rocky") and ansible_distribution_major_version == "8"
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "8"
 
 - name: RedHat | Check Requirements
   package:
@@ -45,21 +45,21 @@
     name: /tmp/opsview-agent-6.1.0.201902141415-1.ct6.x86_64.rpm
     state: installed
     disable_gpg_check: true
-  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "6"
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "6"
 
 - name: RedHat 7 | Install OpsView Agent
   yum:
     name: /tmp/opsview-agent-6.3.1.201911130833-1.ct7.x86_64.rpm
     state: installed
     disable_gpg_check: true
-  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux") and ansible_distribution_major_version == "7"
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "7"
 
 - name: RedHat 8 | Install OpsView Agent
   yum:
     name: /tmp/opsview-agent-6.3.1.201911130833-1.ct8.1.1911.x86_64.rpm
     state: installed
     disable_gpg_check: true
-  when: (ansible_distribution == "CentOS" or ansible_distribution == "CloudLinux" or ansible_distribution == "Rocky") and ansible_distribution_major_version == "8"
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "8"
 
 - name: RedHat | Create Agent Configuration File
   template:
